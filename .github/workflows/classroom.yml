@@ -1,0 +1,72 @@
+name: Autograding Tests
+'on':
+- push
+- workflow_dispatch
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: First Test
+      id: first-test
+      uses: education/autograding-io-grader@v1
+      with:
+        test-name: First Test
+        setup-command: g++ main.cpp -o main
+        command: "./main"
+        input: |-
+          2.1
+          12.7
+          13
+          27.1
+        expected-output: '9354.31'
+        comparison-method: contains
+        timeout: 10
+        max-score: 33
+    - name: Second Test
+      id: second-test
+      uses: education/autograding-io-grader@v1
+      with:
+        test-name: Second Test
+        setup-command: g++ main.cpp -o main
+        command: "./main"
+        input: |-
+          26.1
+          4.3
+          0
+          -1
+        expected-output: '4.3'
+        comparison-method: contains
+        timeout: 10
+        max-score: 33
+    - name: Third Test
+      id: third-test
+      uses: education/autograding-io-grader@v1
+      with:
+        test-name: Third Test
+        setup-command: g++ main.cpp -o main
+        command: "./main"
+        input: |-
+          5.03
+          -3.7
+          -27.1
+          4.23
+        expected-output: "-120.662"
+        comparison-method: contains
+        timeout: 10
+        max-score: 34
+    - name: Autograding Reporter
+      uses: education/autograding-grading-reporter@v1
+      env:
+        FIRST-TEST_RESULTS: "${{steps.first-test.outputs.result}}"
+        SECOND-TEST_RESULTS: "${{steps.second-test.outputs.result}}"
+        THIRD-TEST_RESULTS: "${{steps.third-test.outputs.result}}"
+      with:
+        runners: first-test,second-test,third-test
